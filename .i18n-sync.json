@@ -1,0 +1,27 @@
+{
+  "$schema": "./schema.json",
+  "sourceLanguage": "en",
+  "patterns": [
+    {
+      "source": "README.md",
+      "target": "README.:lang.md"
+    },
+    {
+      "source": "docs/en/**/*.{md,markdown}",
+      "target": "docs/:lang/**/*.{md,markdown}"
+    }
+  ],
+  "checks": {
+    "headings": true,
+    "codeBlocks": true,
+    "codeBlocksIdentical": true,
+    "links": true,
+    "images": true,
+    "tables": true,
+    "admonitions": true,
+    "versions": true,
+    "gitStaleness": true
+  },
+  "ignoreLanguages": [],
+  "ignoreFiles": []
+}

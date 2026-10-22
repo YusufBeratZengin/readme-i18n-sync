@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "readme-i18n-sync Configuration",
+  "description": "Configuration file schema for readme-i18n-sync",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "sourceLanguage": {
+      "type": "string",
+      "default": "en",
+      "description": "Primary language code for documentation sources."
+    },
+    "patterns": {
+      "type": "array",
+      "description": "List of pairing patterns mapping source files to translation files.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Source file glob or path."
+          },
+          "target": {
+            "type": "string",
+            "description": "Target translation pattern with :lang placeholder or glob."
+          }
+        },
+        "required": ["source", "target"]
+      }
+    },
+    "checks": {
+      "type": "object",
+      "properties": {
+        "headings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify heading structure and level hierarchy."
+        },
+        "codeBlocks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify code block counts and languages."
+        },
+        "codeBlocksIdentical": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify code block contents are byte-identical."
+        },
+        "links": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify link destination URLs match."
+        },
+        "images": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify image counts and source URLs."
+        },
+        "tables": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify table counts and column structures."
+        },
+        "admonitions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify admonition alerts (NOTE, WARNING, etc.)."
+        },
+        "versions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify semver strings match."
+        },
+        "gitStaleness": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify translation is not older than source commit."
+        }
+      }
+    },
+    "ignoreLanguages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of language codes to ignore."
+    },
+    "ignoreFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of glob patterns for files to ignore."
+    }
+  }
+}

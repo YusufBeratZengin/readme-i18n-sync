@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables & secrets
+.env
+.env.*
+*.pem
+*.key
+*.cert
+*.id_rsa
+
+# Build & Test outputs
+coverage/
+.nyc_output/
+*.log
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/

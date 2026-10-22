@@ -1,0 +1,45 @@
+{
+  "name": "readme-i18n-sync",
+  "version": "0.1.0",
+  "description": "Detect when translated documentation drifts from the source-language docs by comparing structure, not prose.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "i18n-sync": "./bin/i18n-sync.js",
+    "readme-i18n-sync": "./bin/i18n-sync.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "test:watch": "node --test --watch",
+    "check": "node ./bin/i18n-sync.js check",
+    "lint": "node --check bin/i18n-sync.js src/*.js src/**/*.js test/*.test.js"
+  },
+  "keywords": [
+    "i18n",
+    "localization",
+    "documentation",
+    "readme",
+    "markdown",
+    "sync",
+    "drift-detection",
+    "github-actions",
+    "cli"
+  ],
+  "author": "Yusuf Berat Zengin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YusufBeratZengin/readme-i18n-sync.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YusufBeratZengin/readme-i18n-sync/issues"
+  },
+  "homepage": "https://github.com/YusufBeratZengin/readme-i18n-sync#readme"
+}
