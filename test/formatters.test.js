@@ -67,3 +67,16 @@ describe('Formatters', () => {
     assert.ok(gh.includes('::warning file=README.tr.md,line=45,title=i18n-sync drift [headings]::Heading #3 level mismatch: source has H2, target has H3'));
   });
 });
+
+for (const check of ['gitStaleness', 'files']) {
+  test(`${check} is a file-level issue in text, JSON, and GitHub output`, () => {
+    const results = [{ sourcePath: 'README.md', targetPath: 'README.tr.md', language: 'tr', synced: false,
+      issues: [{ check, severity: 'warning', message: 'File issue', line: 1 }],
+      summary: { total: 1, warnings: 1, errors: 0 } }];
+    assert.doesNotMatch(formatText(results), /line \d|undefined/);
+    assert.doesNotMatch(formatGitHub(results), /line=/);
+    const issue = JSON.parse(formatJson(results)).pairs[0].issues[0];
+    assert.equal(Object.hasOwn(issue, 'line'), false);
+    assert.equal(results[0].issues[0].line, 1, 'formatting does not mutate results');
+  });
+}

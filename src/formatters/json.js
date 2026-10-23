@@ -29,7 +29,16 @@ export function formatJson(results, options = {}) {
       fixedCodeBlocks: options.fixedCount || 0,
       allSynced: driftPairs === 0
     },
-    pairs: results
+    ...(options.plannedChanges ? { plannedChanges: options.plannedChanges } : {}),
+    pairs: results.map(result => ({
+      ...result,
+      issues: result.issues.map(issue => {
+        if (!['files', 'gitStaleness'].includes(issue.check)) return issue;
+        const cleaned = { ...issue };
+        delete cleaned.line;
+        return cleaned;
+      })
+    }))
   };
 
   return JSON.stringify(output, null, 2);

@@ -1,3 +1,6 @@
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { runSyncCheck } from '../src/index.js';
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
@@ -83,4 +86,48 @@ client.connect();
       await rm(tempDir, { recursive: true, force: true });
     }
   });
+});
+
+for (const eol of ['\n', '\r\n']) {
+  test(`fixes preserve target ${JSON.stringify(eol)} line endings`, () => {
+    const source = '# Source\n\n```js\nnewCode();\nmoreCode();\n```\n';
+    const target = ['# Target', '', '```js', 'oldCode();', '```', 'Tail', ''].join(eol);
+    const result = fixCodeBlocks(source, target);
+    assert.equal(result.fixedCount, 1);
+    assert.equal(result.newContent, ['# Target', '', '```js', 'newCode();', 'moreCode();', '```', 'Tail', ''].join(eol));
+  });
+}
+test('fixes refuse dirty git targets, dry-run previews, and force explicitly permits writing', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'fix-git-'));
+  const git = args => promisify(execFile)('git', args, { cwd: dir });
+  const target = join(dir, 'README.tr.md');
+  try {
+    await git(['init']);
+    await writeFile(join(dir, 'README.md'), '# Source\n```js\nnewCode();\n```\n');
+    await writeFile(target, '# Target\n```js\noldCode();\n```\n');
+    await git(['add', '.']);
+    await git(['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', 'commit', '-m', 'fixture']);
+    await writeFile(target, '# Local edit\r\n```js\r\noldCode();\r\n```\r\n');
+    const before = await readFile(target);
+    const options = { cwd: dir, noGit: true, fixCodeBlocks: true };
+    const dry = await runSyncCheck({ ...options, dryRun: true });
+    assert.equal(dry.totalFixedBlocks, 0);
+    assert.deepEqual(dry.plannedChanges, [{ targetPath: 'README.tr.md', codeBlocks: 1 }]);
+    assert.deepEqual(await readFile(target), before);
+    await assert.rejects(runSyncCheck(options), /uncommitted changes.*--force/);
+    assert.deepEqual(await readFile(target), before);
+    await git(['add', '.']);
+    await assert.rejects(runSyncCheck(options), /uncommitted changes/);
+    assert.deepEqual(await readFile(target), before);
+    const forced = await runSyncCheck({ ...options, force: true });
+    assert.equal(forced.totalFixedBlocks, 1);
+    assert.equal(await readFile(target, 'utf8'), '# Local edit\r\n```js\r\nnewCode();\r\n```\r\n');
+
+    await git(['rm', '--cached', '--force', 'README.tr.md']);
+    // Restore code drift so the untracked target requires a write after the forced fix.
+    await writeFile(target, before);
+    const untrackedBytes = await readFile(target);
+    await assert.rejects(runSyncCheck({ ...options, source: 'README.md', target: 'README.tr.md' }), /uncommitted changes/);
+    assert.deepEqual(await readFile(target), untrackedBytes);
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });

@@ -1,14 +1,14 @@
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 
 import { parseMarkdown } from './parser.js';
 import { compareDocuments } from './comparer.js';
 import { discoverPairs, inferSourceFromTarget } from './pairer.js';
-import { checkStaleness } from './git.js';
+import { checkStaleness, assertTargetClean } from './git.js';
 import { fixCodeBlocks, fixCodeBlocksInFile } from './fixer.js';
 import { formatOutput, formatText, formatJson, formatGitHub } from './formatters/index.js';
-import { loadConfig, DEFAULT_CONFIG } from './config.js';
+import { loadConfig, DEFAULT_CONFIG, mergeConfig } from './config.js';
 
 export {
   parseMarkdown,
@@ -36,7 +36,10 @@ export {
  * @param {string} [options.source] Manual source file
  * @param {string} [options.target] Manual target file
  * @param {boolean} [options.noGit=false]
- * @returns {Promise<{ results: import('./comparer.js').ComparisonResult[], totalFixedBlocks: number, allSynced: boolean }>}
+ * @param {number} [options.stalenessGrace] Override the grace period in seconds
+ * @param {boolean} [options.dryRun=false] Preview fixes without writing
+ * @param {boolean} [options.force=false] Allow fixes to uncommitted targets
+ * @returns {Promise<{ results: import('./comparer.js').ComparisonResult[], totalFixedBlocks: number, plannedChanges: object[], allSynced: boolean }>}
  */
 export async function runSyncCheck(options = {}) {
   const cwd = options.cwd || process.cwd();
@@ -44,7 +47,7 @@ export async function runSyncCheck(options = {}) {
   // Load configuration
   let config;
   if (typeof options.config === 'object' && options.config !== null) {
-    config = { ...DEFAULT_CONFIG, ...options.config };
+    config = mergeConfig(options.config);
   } else {
     config = await loadConfig(typeof options.config === 'string' ? options.config : '.i18n-sync.json', cwd);
   }
@@ -52,6 +55,8 @@ export async function runSyncCheck(options = {}) {
   if (options.noGit) {
     config.checks.gitStaleness = false;
   }
+
+  if (options.stalenessGrace !== undefined) config.staleness.graceSeconds = options.stalenessGrace;
 
   // Determine pairs to inspect
   let pairs = [];
@@ -82,17 +87,27 @@ export async function runSyncCheck(options = {}) {
     pairs = await discoverPairs(cwd, config);
   }
 
-  // If fixCodeBlocks flag is on, fix code blocks first
+  // Preflight every planned write before modifying any target.
   let totalFixedBlocks = 0;
+  const plannedChanges = [];
   if (options.fixCodeBlocks) {
     for (const pair of pairs) {
-      if (pair.sourceExists && pair.targetExists) {
-        const sFull = resolve(cwd, pair.sourcePath);
-        const tFull = resolve(cwd, pair.targetPath);
-        const fixResult = await fixCodeBlocksInFile(sFull, tFull);
-        if (fixResult.fixed) {
-          totalFixedBlocks += fixResult.fixedCount;
-        }
+      if (!pair.sourceExists || !pair.targetExists) continue;
+      const sFull = resolve(cwd, pair.sourcePath);
+      const tFull = resolve(cwd, pair.targetPath);
+      const plan = await fixCodeBlocksInFile(sFull, tFull, { dryRun: true });
+      if (plan.error) throw new Error(plan.error);
+      if (plan.plannedCount) {
+        if (!options.dryRun && !options.force) await assertTargetClean(tFull, dirname(tFull));
+        plannedChanges.push({ targetPath: pair.targetPath, codeBlocks: plan.plannedCount });
+      }
+    }
+    if (!options.dryRun) {
+      for (const plan of plannedChanges) {
+        const pair = pairs.find(p => p.targetPath === plan.targetPath);
+        const result = await fixCodeBlocksInFile(resolve(cwd, pair.sourcePath), resolve(cwd, pair.targetPath), { force: options.force });
+        if (result.error) throw new Error(result.error);
+        totalFixedBlocks += result.fixedCount;
       }
     }
   }
@@ -113,8 +128,7 @@ export async function runSyncCheck(options = {}) {
         issues: [{
           check: 'files',
           severity: 'error',
-          message: `Source document "${pair.sourcePath}" does not exist`,
-          line: 1
+          message: `Source document "${pair.sourcePath}" does not exist`
         }],
         summary: { total: 1, warnings: 0, errors: 1 }
       });
@@ -130,8 +144,7 @@ export async function runSyncCheck(options = {}) {
         issues: [{
           check: 'files',
           severity: 'error',
-          message: `Target translation document "${pair.targetPath}" does not exist`,
-          line: 1
+          message: `Target translation document "${pair.targetPath}" does not exist`
         }],
         summary: { total: 1, warnings: 0, errors: 1 }
       });
@@ -148,7 +161,7 @@ export async function runSyncCheck(options = {}) {
 
     let gitInfo = null;
     if (config.checks.gitStaleness) {
-      gitInfo = await checkStaleness(pair.sourcePath, pair.targetPath, cwd);
+      gitInfo = await checkStaleness(pair.sourcePath, pair.targetPath, cwd, config.staleness.graceSeconds);
     }
 
     const comparison = compareDocuments(sourceDoc, targetDoc, {
@@ -167,6 +180,7 @@ export async function runSyncCheck(options = {}) {
   return {
     results,
     totalFixedBlocks,
+    plannedChanges,
     allSynced
   };
 }

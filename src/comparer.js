@@ -5,7 +5,7 @@ import { formatDuration } from './git.js';
  * @property {string} check - Category of check (headings, codeBlocks, etc.)
  * @property {'warning'|'error'} severity
  * @property {string} message
- * @property {number} line - Target line number
+ * @property {number} [line] - Target line number, only for an element in the target
  * @property {number} [sourceLine]
  * @property {any} [details]
  */
@@ -67,7 +67,7 @@ export function compareDocuments(sourceDoc, targetDoc, options = {}) {
         check: 'headings',
         severity: 'warning',
         message: `Heading count mismatch: source has ${sHeadings.length} headings, target has ${tHeadings.length}`,
-        line: tHeadings[0]?.line || 1,
+        ...(tHeadings[0] ? { line: tHeadings[0].line } : {}),
         details: { expected: sHeadings.length, actual: tHeadings.length }
       });
     }
@@ -95,8 +95,7 @@ export function compareDocuments(sourceDoc, targetDoc, options = {}) {
         issues.push({
           check: 'headings',
           severity: 'warning',
-          message: `Missing heading from source: H${sH.level} ("${sH.text}")`,
-          line: tHeadings[tHeadings.length - 1]?.line || 1,
+          message: `Missing heading from source: H${sH.level} ("${sH.text}") (source line ${sH.line})`,
           sourceLine: sH.line,
           details: { missingLevel: sH.level, missingText: sH.text }
         });
@@ -125,7 +124,7 @@ export function compareDocuments(sourceDoc, targetDoc, options = {}) {
         check: 'codeBlocks',
         severity: 'warning',
         message: `Code block count mismatch: source has ${sBlocks.length} code blocks, target has ${tBlocks.length}`,
-        line: tBlocks[0]?.startLine || 1,
+        ...(tBlocks[0] ? { line: tBlocks[0].startLine } : {}),
         details: { expected: sBlocks.length, actual: tBlocks.length }
       });
     }
@@ -181,8 +180,7 @@ export function compareDocuments(sourceDoc, targetDoc, options = {}) {
         issues.push({
           check: 'links',
           severity: 'warning',
-          message: `Missing link target in translation: "${sL.href}"`,
-          line: tLinks[0]?.line || 1,
+          message: `Missing link target in translation: "${sL.href}" (source line ${sL.line})`,
           sourceLine: sL.line,
           details: { missingHref: sL.href }
         });
@@ -213,7 +211,6 @@ export function compareDocuments(sourceDoc, targetDoc, options = {}) {
         check: 'images',
         severity: 'warning',
         message: `Image count mismatch: source has ${sImgs.length} images, target has ${tImgs.length}`,
-        line: tImgs[0]?.line || 1,
         details: { expected: sImgs.length, actual: tImgs.length }
       });
     }
@@ -224,8 +221,7 @@ export function compareDocuments(sourceDoc, targetDoc, options = {}) {
         issues.push({
           check: 'images',
           severity: 'warning',
-          message: `Missing image source in translation: "${sImg.src}"`,
-          line: tImgs[0]?.line || 1,
+          message: `Missing image source in translation: "${sImg.src}" (source line ${sImg.line})`,
           sourceLine: sImg.line,
           details: { missingSrc: sImg.src }
         });
@@ -243,7 +239,7 @@ export function compareDocuments(sourceDoc, targetDoc, options = {}) {
         check: 'tables',
         severity: 'warning',
         message: `Table count mismatch: source has ${sTables.length} tables, target has ${tTables.length}`,
-        line: tTables[0]?.startLine || 1,
+        ...(tTables[0] ? { line: tTables[0].startLine } : {}),
         details: { expected: sTables.length, actual: tTables.length }
       });
     }
@@ -276,7 +272,7 @@ export function compareDocuments(sourceDoc, targetDoc, options = {}) {
         check: 'admonitions',
         severity: 'warning',
         message: `Admonition count mismatch: source has ${sAdms.length} admonitions, target has ${tAdms.length}`,
-        line: tAdms[0]?.line || 1,
+        ...(tAdms[0] ? { line: tAdms[0].line } : {}),
         details: { expected: sAdms.length, actual: tAdms.length }
       });
     }
@@ -309,8 +305,7 @@ export function compareDocuments(sourceDoc, targetDoc, options = {}) {
         issues.push({
           check: 'versions',
           severity: 'warning',
-          message: `Version mismatch: source version "${sV.version}" not found in translation`,
-          line: tVers[0]?.line || 1,
+          message: `Version mismatch: source version "${sV.version}" not found in translation (source line ${sV.line})`,
           sourceLine: sV.line,
           details: { missingVersion: sV.version }
         });
@@ -341,7 +336,6 @@ export function compareDocuments(sourceDoc, targetDoc, options = {}) {
         check: 'gitStaleness',
         severity: 'warning',
         message: `Translation is stale: source changed on ${sourceDateStr} (${diffStr} after target's commit on ${targetDateStr})`,
-        line: 1,
         details: {
           sourceTime: options.gitInfo.sourceTime,
           targetTime: options.gitInfo.targetTime,

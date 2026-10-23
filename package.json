@@ -1,7 +1,7 @@
 {
   "name": "readme-i18n-sync",
   "version": "0.1.0",
-  "description": "Detect when translated documentation drifts from the source-language docs by comparing structure, not prose.",
+  "description": "Detect when translated documentation drifts from the source-language docs by comparing structure, not prose",
   "type": "module",
   "main": "./src/index.js",
   "exports": {
@@ -19,7 +19,8 @@
     "test": "node --test",
     "test:watch": "node --test --watch",
     "check": "node ./bin/i18n-sync.js check",
-    "lint": "node --check bin/i18n-sync.js src/*.js src/**/*.js test/*.test.js"
+    "lint": "node --check bin/i18n-sync.js src/*.js src/**/*.js test/*.test.js",
+    "prepublishOnly": "npm run lint && npm test"
   },
   "keywords": [
     "i18n",
@@ -41,5 +42,19 @@
   "bugs": {
     "url": "https://github.com/YusufBeratZengin/readme-i18n-sync/issues"
   },
-  "homepage": "https://github.com/YusufBeratZengin/readme-i18n-sync#readme"
+  "homepage": "https://github.com/YusufBeratZengin/readme-i18n-sync#readme",
+  "files": [
+    "bin",
+    "src",
+    "schema.json",
+    "README.md",
+    "README.tr.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

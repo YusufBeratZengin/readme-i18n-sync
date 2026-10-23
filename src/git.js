@@ -9,11 +9,12 @@ const execFileAsync = promisify(execFile);
  * @property {boolean} tracked - Whether file has a commit timestamp
  * @property {number|null} timestamp - Unix timestamp in seconds
  * @property {Date|null} date - JavaScript Date
+ * @property {string} [commit] - Last commit hash
  */
 
 /**
  * Get the last commit timestamp for a file using git.
- * Runs: `git log -1 --format=%ct -- <file>`
+ * Reads the commit hash and timestamp with `git log -1 --format=%H%n%ct -- <file>`.
  * Returns null / tracked:false gracefully if outside git or untracked.
  * @param {string} filePath
  * @param {string} [cwd=process.cwd()]
@@ -21,9 +22,9 @@ const execFileAsync = promisify(execFile);
  */
 export async function getFileCommitInfo(filePath, cwd = process.cwd()) {
   try {
-    const { stdout, stderr } = await execFileAsync(
+    const { stdout } = await execFileAsync(
       'git',
-      ['log', '-1', '--format=%ct', '--', filePath],
+      ['log', '-1', '--format=%H%n%ct', '--', filePath],
       { cwd, timeout: 5000 }
     );
 
@@ -37,7 +38,8 @@ export async function getFileCommitInfo(filePath, cwd = process.cwd()) {
       };
     }
 
-    const timestamp = parseInt(trimmed, 10);
+    const [commit, time] = trimmed.split('\n');
+    const timestamp = parseInt(time, 10);
     if (isNaN(timestamp)) {
       return {
         available: true,
@@ -51,6 +53,7 @@ export async function getFileCommitInfo(filePath, cwd = process.cwd()) {
       available: true,
       tracked: true,
       timestamp,
+      commit,
       date: new Date(timestamp * 1000)
     };
   } catch (err) {
@@ -86,9 +89,10 @@ export function formatDuration(diffSeconds) {
  * @param {string} sourcePath
  * @param {string} targetPath
  * @param {string} [cwd=process.cwd()]
+ * @param {number} [graceSeconds=0]
  * @returns {Promise<{ isStale: boolean, skipped: boolean, reason?: string, sourceTime?: Date, targetTime?: Date, diffSeconds?: number }>}
  */
-export async function checkStaleness(sourcePath, targetPath, cwd = process.cwd()) {
+export async function checkStaleness(sourcePath, targetPath, cwd = process.cwd(), graceSeconds = 0) {
   const [sourceInfo, targetInfo] = await Promise.all([
     getFileCommitInfo(sourcePath, cwd),
     getFileCommitInfo(targetPath, cwd)
@@ -111,7 +115,7 @@ export async function checkStaleness(sourcePath, targetPath, cwd = process.cwd()
   }
 
   const diff = sourceInfo.timestamp - targetInfo.timestamp;
-  const isStale = diff > 0;
+  const isStale = sourceInfo.commit !== targetInfo.commit && diff > graceSeconds;
 
   return {
     isStale,
@@ -120,4 +124,16 @@ export async function checkStaleness(sourcePath, targetPath, cwd = process.cwd()
     targetTime: targetInfo.date,
     diffSeconds: diff
   };
+}
+
+/** Refuse writes to modified, staged, conflicted, or untracked targets in git. */
+export async function assertTargetClean(targetPath, cwd = process.cwd()) {
+  try {
+    await execFileAsync('git', ['rev-parse', '--show-toplevel'], { cwd, timeout: 5000 });
+  } catch (err) {
+    if (err.code === 'ENOENT' || /not a git repository/i.test(err.stderr || '')) return;
+    throw new Error(`Cannot verify git status for "${targetPath}"`);
+  }
+  const { stdout } = await execFileAsync('git', ['status', '--porcelain', '--untracked-files=all', '--', targetPath], { cwd, timeout: 5000 });
+  if (stdout.trim()) throw new Error(`Refusing to overwrite "${targetPath}": uncommitted changes (use --force to override)`);
 }

@@ -1,179 +1,145 @@
 # readme-i18n-sync
+[![CI](https://github.com/YusufBeratZengin/readme-i18n-sync/actions/workflows/ci.yml/badge.svg)](https://github.com/YusufBeratZengin/readme-i18n-sync/actions/workflows/ci.yml) [![npm](https://img.shields.io/npm/v/readme-i18n-sync)](https://www.npmjs.com/package/readme-i18n-sync) [![MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Node](https://img.shields.io/badge/node-%3E%3D20-green)](https://nodejs.org) [![Dependencies](https://img.shields.io/badge/runtime_dependencies-0-green)](package.json)
+<!-- i18n-sync-ignore -->
+English | [Türkçe](README.tr.md)
 
-Structural drift detection for multilingual repository documentation.
+Detect structural drift between source Markdown and its translations.
+Runs locally with zero runtime dependencies; compares structure and git history.
+Install: `npm install -g readme-i18n-sync` (Node.js 20+).
+Run: `i18n-sync check`.
 
-Multilingual repositories often ship stale translations. Translators update prose, but upstream documentation frequently changes code blocks, configuration tables, anchor links, warning callouts, and version numbers. This tool compares document structure rather than prose, alerting you when translations miss structural elements or fall behind upstream git commits.
+## Demo
 
-## Features
+Real output from `node ../../../bin/i18n-sync.js check` inside `test/fixtures/basic/` (exit 1). Spanish has intentional drift; Turkish is synced. Git staleness is disabled in this fixture for repeatable output.
 
-- Structure-based comparison: verifies headings, code blocks, links, images, tables, admonitions, and semver strings.
-- Automated code block synchronization: `--fix-code-blocks` copies updated code snippets from the source into translated files without altering translated prose.
-- Zero runtime dependencies: built entirely on Node.js standard libraries.
-- Flexible pairing: pairs root `README.md` with `README.<lang>.md` and `docs/en/**` with `docs/<lang>/**` out of the box.
-- Git staleness detection: compares committer timestamps using `git log -1 --format=%ct -- <file>`.
-- Ignore markers: exclude localized additions using HTML comment tags (`<!-- i18n-sync-ignore -->`).
-- Multiple output formats: clean terminal text, structured JSON, and GitHub Actions workflow annotations.
+<!-- basic-output -->
+~~~text
+[DRIFT] README.es.md (source: README.md, lang: es)
+  - line 20: [headings] Heading #4 level mismatch: source has H3 ("Configuration"), target has H2 ("Configuración")
+  - line 7: [codeBlocks] Code block #1 content differs from source
+  - line 15: [codeBlocks] Code block #2 content differs from source
+  - [links] Missing link target in translation: "https://example.com/project" (source line 30)
+  - [images] Missing image source in translation: "https://example.com/logo.png" (source line 30)
+  - line 22: [tables] Table #1 column count mismatch: source has 3 columns, target has 2
+  - line 26: [admonitions] Admonition #1 type mismatch: source has [!NOTE], target has [!WARNING]
+  - [versions] Version mismatch: source version "0.1.0" not found in translation (source line 30)
+  - line 29: [versions] Outdated or extra version: translation mentions version "0.0.9", not found in source
+[OK] README.tr.md (source: README.md, lang: tr)
 
-## Structural Checks
+Summary:
+  Pairs checked: 2 (1 synced, 1 with drift)
+  Issues: 9 warnings, 0 errors
+~~~
+<!-- /basic-output -->
 
-| Check | Description |
-| --- | --- |
-| Headings | Verifies total heading count, depth sequence, and hierarchical levels. |
-| Code Blocks | Verifies block count, language identifiers, and byte-identical contents. |
-| Links | Verifies destination URLs exist in translated documents. |
-| Images | Verifies image count and source image URLs. |
-| Tables | Verifies table count and column structure per table. |
-| Admonitions | Verifies GitHub callout alert types (`NOTE`, `TIP`, `IMPORTANT`, `WARNING`, `CAUTION`). |
-| Versions | Verifies semantic version strings match between source and translation. |
-| Git Staleness | Verifies translation committer date is not older than source committer date. |
+## Install
 
-## Installation
-
-```bash
-npm install -g readme-i18n-sync
-```
-
-Or run directly using `npx`:
-
-```bash
-npx readme-i18n-sync check
-```
+Use the install command above, or run a checkout directly with `node bin/i18n-sync.js check`. No build step is needed.
 
 ## Usage
 
-### Run Default Check
-
-Scan the repository for paired documentation and verify structural parity:
-
-```bash
+~~~bash
 i18n-sync check
-```
-
-### Auto-Fix Outdated Code Blocks
-
-Synchronize code snippets from the source document directly into translated files:
-
-```bash
-i18n-sync check --fix-code-blocks
-```
-
-### Output Formats
-
-Generate structured JSON for custom tooling:
-
-```bash
 i18n-sync check --format json
-```
-
-Generate GitHub Actions workflow annotations:
-
-```bash
 i18n-sync check --format github
-```
-
-### Check Specific Files
-
-Specify explicit source and target files:
-
-```bash
+i18n-sync check README.tr.md
 i18n-sync check --source README.md --target README.tr.md
-```
+i18n-sync check --staleness-grace 10m --warn-only
+i18n-sync check --fix-code-blocks --dry-run
+~~~
 
-## Configuration
+Remove `--dry-run` to apply code block fixes. Targets with uncommitted changes are protected; `--force` explicitly permits overwriting their code blocks. Fixes preserve the target's LF or CRLF line endings. Preview output names each target and its block count; JSON adds `plannedChanges`.
 
-You can configure pairing patterns and checks by creating a `.i18n-sync.json` file in your repository root:
+The ESM API is also available:
 
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/YusufBeratZengin/readme-i18n-sync/main/schema.json",
-  "sourceLanguage": "en",
-  "patterns": [
-    {
-      "source": "README.md",
-      "target": "README.:lang.md"
-    },
-    {
-      "source": "docs/en/**/*.{md,markdown}",
-      "target": "docs/:lang/**/*.{md,markdown}"
-    }
-  ],
-  "checks": {
-    "headings": true,
-    "codeBlocks": true,
-    "codeBlocksIdentical": true,
-    "links": true,
-    "images": true,
-    "tables": true,
-    "admonitions": true,
-    "versions": true,
-    "gitStaleness": true
-  },
-  "ignoreLanguages": [],
-  "ignoreFiles": []
-}
-```
-
-## Ignore Markers
-
-When a translation contains locale-specific content (such as a regional mirror or local community link), use ignore comments to bypass drift detection:
-
-```markdown
-<!-- i18n-sync-ignore -->
-### Regional Mirror
-
-<!-- i18n-sync-ignore-start -->
-```bash
-npm install --registry=https://registry.example.org
-```
-<!-- i18n-sync-ignore-end -->
-```
-
-## GitHub Actions Integration
-
-Add the following workflow file to `.github/workflows/docs-sync.yml`:
-
-```yaml
-name: Documentation Sync Check
-
-on:
-  pull_request:
-    paths:
-      - 'README*.md'
-      - 'docs/**'
-
-jobs:
-  verify-sync:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Check documentation drift
-        run: npx readme-i18n-sync check --format github
-```
-
-## Programmatic API
-
-You can also use `readme-i18n-sync` programmatically in Node.js >=20:
-
-```javascript
-import { runSyncCheck, parseMarkdown, compareDocuments } from 'readme-i18n-sync';
+~~~javascript
+import { runSyncCheck } from 'readme-i18n-sync';
 
 const { results, allSynced } = await runSyncCheck({
   cwd: process.cwd(),
-  fixCodeBlocks: false
+  noGit: true
 });
+console.log({ pairs: results.length, allSynced });
+~~~
 
-console.log(`Documentation synchronized: ${allSynced}`);
-```
+## Examples
+
+See [the runnable multilingual example](examples/README.md), including an Actions workflow. Its `README.md` / `README.tr.md` and `docs/en/guide.md` / `docs/tr/guide.md` pairs are synced.
+
+## Configuration
+
+Create `.i18n-sync.json` in the directory you check. Unspecified settings retain their defaults. Invalid settings name the offending key and exit 2. The [schema](schema.json) also supports editor validation.
+
+~~~json
+{
+  "sourceLanguage": "en",
+  "patterns": [
+    { "source": "README.md", "target": "README.:lang.md" },
+    { "source": "docs/en/**/*.{md,markdown}", "target": "docs/:lang/**/*.{md,markdown}" }
+  ],
+  "checks": { "gitStaleness": true },
+  "staleness": { "graceSeconds": 30 },
+  "ignoreLanguages": [],
+  "ignoreFiles": []
+}
+~~~
+
+| Option | Behavior |
+| --- | --- |
+| `--format text/json/github` | Terminal text (default), JSON, or Actions annotations; `--json` and `--github` are shortcuts. |
+| `--config path`, `-c path` | Read a custom configuration file. |
+| `--staleness-grace 30s` | Override `staleness.graceSeconds` (default 0); units: `s`, `m`, `h`, `d`. |
+| `--no-git` | Disable git staleness checks. |
+| `--strict` | Exit 1 on drift (default). |
+| `--warn-only`, `--no-strict` | Print drift and exit 0; errors still exit 2. |
+| `--fix-code-blocks` | Copy differing code blocks from the source. |
+| `--dry-run` | Preview fixes without writing; drift still exits 1. |
+| `--force` | Permit fixes to targets with uncommitted changes. |
+| `--source path --target path` | Check an explicit pair. |
+| `--help`, `--version` | Show help or the version. |
+
+## How it works
+
+The parser extracts headings, fenced code blocks, link destinations, image URLs, tables, GitHub admonitions, and semantic versions. Checks compare counts, heading levels, table columns, block languages and contents, URLs, alert types, and versions. Each check can be disabled in `checks`; see the schema for names.
+
+Default pairing finds `README.<lang>.md` and `docs/<lang>/**`. BCP-47-like tokens support `zh-CN`, `pt_BR`, and `zh-Hans`; `draft`, `bak`, and `CHANGELOG` suffixes are excluded. Target patterns require `:lang` (legacy `<lang>` is also accepted).
+
+Git checks compare each file's last commit hash and committer timestamp. The same commit is always synced; otherwise a source newer by more than the grace period is stale. Missing git history is skipped. File-level issues omit target lines; missing links, images, and versions identify their source line.
+
+Use `<!-- i18n-sync-ignore -->` before a localized element, or wrap a region with `<!-- i18n-sync-ignore-start -->` and `<!-- i18n-sync-ignore-end -->`.
+
+## What it does not check
+
+- Prose quality, grammar, or readability.
+- Translation correctness or whether meaning has changed.
+- Whether anchors renamed by translators resolve correctly. Link destinations are compared as written; localized anchors may need ignore markers.
+
+Checks run locally without network access. JSON may contain document excerpts from differing code blocks; review it before sharing.
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| 0 | Synced, no pairs found, or drift with `--warn-only`. |
+| 1 | Structural drift or a missing document. |
+| 2 | Usage, configuration, or execution error (including a refused fix). |
+
+## Development
+
+From a checkout:
+
+~~~bash
+npm run lint
+npm test
+npm pack --dry-run
+~~~
+
+Tests use Node's built-in runner, local fixtures, and temporary git repositories. They require git and make no network requests. CI checks Node 20, 22, and 24 on Linux and Windows.
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md), the [code of conduct](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md). Keep the English and Turkish READMEs in sync.
 
 ## License
 
-MIT License. Copyright (c) 2026 Yusuf Berat Zengin. See [LICENSE](https://github.com/YusufBeratZengin/readme-i18n-sync/blob/main/LICENSE) for details.
+[MIT](LICENSE). Copyright (c) 2026 Yusuf Berat Zengin.

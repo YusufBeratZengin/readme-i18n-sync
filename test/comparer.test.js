@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseMarkdown } from '../src/parser.js';
@@ -214,4 +215,18 @@ npm install pkg@1.0.0
     assert.equal(res.synced, true);
     assert.equal(res.issues.length, 0);
   });
+});
+
+test('missing elements identify the source location; existing target elements keep target lines', async () => {
+  const source = parseMarkdown(await readFile(new URL('./fixtures/locations/README.md', import.meta.url), 'utf8'));
+  const target = parseMarkdown(await readFile(new URL('./fixtures/locations/README.tr.md', import.meta.url), 'utf8'));
+  const result = compareDocuments(source, target);
+  for (const [check, sourceLine] of [['links', 12], ['images', 13], ['versions', 14]]) {
+    const issue = result.issues.find(i => i.check === check && i.sourceLine);
+    assert.equal(issue.sourceLine, sourceLine);
+    assert.match(issue.message, new RegExp(`source line ${sourceLine}`));
+    assert.equal(Object.hasOwn(issue, 'line'), false);
+  }
+  assert.equal(result.issues.find(i => i.details?.extraHref).line, 3);
+  assert.equal(result.issues.find(i => i.details?.extraVersion).line, 4);
 });

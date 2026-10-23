@@ -1,3 +1,6 @@
+import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
@@ -50,4 +53,31 @@ describe('Pairer', () => {
     const esPair = pairs.find(p => p.language === 'es');
     assert.equal(esPair, undefined);
   });
+});
+
+for (const lang of ['zh-CN', 'pt_BR', 'zh-Hans']) {
+  test(`infers README.${lang}.md`, () => {
+    assert.deepEqual(inferSourceFromTarget(`README.${lang}.md`), { sourcePath: 'README.md', language: lang });
+  });
+}
+for (const suffix of ['draft', 'bak', 'CHANGELOG']) {
+  test(`README.${suffix}.md is not a translation`, () => {
+    assert.equal(inferSourceFromTarget(`README.${suffix}.md`), null);
+  });
+}
+test('discovers language variants and docs/zh-CN, excluding draft and backup names', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'pairer-langs-'));
+  try {
+    for (const name of ['README.md', 'README.zh-CN.md', 'README.pt_BR.md', 'README.zh-Hans.md', 'README.draft.md', 'README.bak.md', 'README.CHANGELOG.md']) {
+      await writeFile(join(dir, name), '# Title');
+    }
+    for (const lang of ['en', 'zh-CN']) {
+      await mkdir(join(dir, 'docs', lang, 'nested'), { recursive: true });
+      await writeFile(join(dir, 'docs', lang, 'nested', 'guide.md'), '# Guide');
+    }
+    const pairs = await discoverPairs(dir);
+    assert.deepEqual(pairs.map(p => p.targetPath).sort(), ['README.pt_BR.md', 'README.zh-CN.md', 'README.zh-Hans.md', 'docs/zh-CN/nested/guide.md'].sort());
+    assert.equal(pairs.find(p => p.language === 'zh-CN' && p.targetPath.startsWith('docs/')).sourcePath, 'docs/en/nested/guide.md');
+    assert.ok(pairs.every(p => p.sourceExists && p.targetExists));
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });

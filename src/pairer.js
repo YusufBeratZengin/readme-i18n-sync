@@ -1,6 +1,9 @@
 import { existsSync } from 'node:fs';
-import { resolve, relative, dirname, basename } from 'node:path';
+import { resolve } from 'node:path';
 import { normalizePath, walkDirectory, globToRegex, matchGlob } from './utils.js';
+
+// BCP-47-like base, script, region and variant tokens; backup suffixes are reserved.
+const isLanguage = value => /^[a-z]{2,3}(?:[-_](?:[a-z]{4}|[a-z]{2}|[0-9]{3}|[a-z0-9]{5,8}))*$/i.test(value) && value.toLowerCase() !== 'bak';
 
 /**
  * @typedef {Object} FilePair
@@ -64,7 +67,7 @@ export async function discoverPairs(rootDir = '.', config = {}) {
         const match = targetRegex.exec(file);
         if (match && match.groups && match.groups.lang) {
           const lang = match.groups.lang;
-          if (lang === sourceLang || ignoreLangs.has(lang)) continue;
+          if (!isLanguage(lang) || lang.toLowerCase() === sourceLang.toLowerCase() || ignoreLangs.has(lang)) continue;
 
           // Determine corresponding source file path
           let expectedSource;
@@ -72,7 +75,7 @@ export async function discoverPairs(rootDir = '.', config = {}) {
             expectedSource = sourcePattern.replace(/(?::lang|<lang>)/g, sourceLang);
           } else if (targetPattern.includes('**') && sourcePattern.includes('**')) {
             // e.g. docs/:lang/** -> docs/en/**
-            const targetPrefix = targetPattern.split(':lang')[0];
+            const targetPrefix = targetPattern.split(/:lang|<lang>/)[0];
             const sourcePrefix = sourcePattern.split('**')[0];
             const relativeSuffix = file.slice(targetPrefix.length + lang.length + 1);
             expectedSource = normalizePath(`${sourcePrefix}${relativeSuffix}`);
@@ -117,7 +120,7 @@ export async function discoverPairs(rootDir = '.', config = {}) {
     const match = rootReadmeTargetRegex.exec(file);
     if (match) {
       const lang = match[1];
-      if (lang.toLowerCase() !== 'en' && !ignoreLangs.has(lang)) {
+      if (isLanguage(lang) && lang.toLowerCase() !== sourceLang.toLowerCase() && !ignoreLangs.has(lang) && !ignoreFiles.some(ign => matchGlob(file, ign))) {
         pairedTargets.add(file);
         pairs.push({
           sourcePath: 'README.md',
@@ -144,7 +147,7 @@ export function inferSourceFromTarget(targetPath, sourceLang = 'en') {
 
   // README.<lang>.md -> README.md
   const readmeMatch = normalized.match(/(?:^|\/)README\.([a-zA-Z0-9_-]+)\.md$/i);
-  if (readmeMatch) {
+  if (readmeMatch && isLanguage(readmeMatch[1])) {
     const lang = readmeMatch[1];
     const source = normalized.replace(/README\.[a-zA-Z0-9_-]+\.md$/i, 'README.md');
     return { sourcePath: source, language: lang };
@@ -152,7 +155,7 @@ export function inferSourceFromTarget(targetPath, sourceLang = 'en') {
 
   // docs/<lang>/... -> docs/en/...
   const docsMatch = normalized.match(/^(.*\/)?docs\/([a-zA-Z0-9_-]+)\/(.+)$/);
-  if (docsMatch) {
+  if (docsMatch && isLanguage(docsMatch[2])) {
     const prefix = docsMatch[1] || '';
     const lang = docsMatch[2];
     const rest = docsMatch[3];
@@ -164,7 +167,7 @@ export function inferSourceFromTarget(targetPath, sourceLang = 'en') {
 
   // <filename>.<lang>.md -> <filename>.md
   const genericMatch = normalized.match(/^(.*)\.([a-zA-Z0-9_-]+)\.(md|markdown)$/i);
-  if (genericMatch) {
+  if (genericMatch && isLanguage(genericMatch[2])) {
     const base = genericMatch[1];
     const lang = genericMatch[2];
     const ext = genericMatch[3];

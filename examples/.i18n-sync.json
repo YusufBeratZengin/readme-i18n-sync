@@ -1,0 +1,10 @@
+{
+  "$schema": "../schema.json",
+  "sourceLanguage": "en",
+  "patterns": [
+    { "source": "README.md", "target": "README.:lang.md" },
+    { "source": "docs/en/**/*.md", "target": "docs/:lang/**/*.md" }
+  ],
+  "checks": { "gitStaleness": false },
+  "staleness": { "graceSeconds": 30 }
+}

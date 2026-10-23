@@ -10,7 +10,8 @@
     "sourceLanguage": {
       "type": "string",
       "default": "en",
-      "description": "Primary language code for documentation sources."
+      "description": "Primary language code for documentation sources.",
+      "minLength": 1
     },
     "patterns": {
       "type": "array",
@@ -20,14 +21,23 @@
         "properties": {
           "source": {
             "type": "string",
-            "description": "Source file glob or path."
+            "description": "Source file glob or path.",
+            "minLength": 1
           },
           "target": {
             "type": "string",
-            "description": "Target translation pattern with :lang placeholder or glob."
+            "description": "Translation pattern containing :lang (or legacy <lang>).",
+            "pattern": ":lang|<lang>"
+          },
+          "language": {
+            "type": "string"
           }
         },
-        "required": ["source", "target"]
+        "required": [
+          "source",
+          "target"
+        ],
+        "additionalProperties": false
       }
     },
     "checks": {
@@ -78,7 +88,8 @@
           "default": true,
           "description": "Verify translation is not older than source commit."
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ignoreLanguages": {
       "type": "array",
@@ -93,6 +104,19 @@
         "type": "string"
       },
       "description": "List of glob patterns for files to ignore."
+    },
+    "staleness": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "graceSeconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Allow this many seconds between source and translation commits."
+        }
+      }
     }
-  }
+  },
+  "additionalProperties": false
 }

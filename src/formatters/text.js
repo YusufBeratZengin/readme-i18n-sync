@@ -24,10 +24,14 @@ export function formatText(results, options = {}) {
     } else {
       lines.push(`[DRIFT] ${res.targetPath} (source: ${res.sourcePath}, lang: ${res.language})`);
       for (const issue of res.issues) {
-        const prefix = issue.severity === 'error' ? 'ERROR' : 'WARN';
-        lines.push(`  - line ${issue.line}: [${issue.check}] ${issue.message}`);
+        const location = issue.line && !['files', 'gitStaleness'].includes(issue.check) ? `line ${issue.line}: ` : '';
+        lines.push(`  - ${location}[${issue.check}] ${issue.message}`);
       }
     }
+  }
+
+  for (const plan of options.plannedChanges || []) {
+    lines.push(`Would update ${plan.codeBlocks} code block(s) in ${plan.targetPath}`);
   }
 
   lines.push('');

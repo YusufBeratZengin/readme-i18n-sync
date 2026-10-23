@@ -23,12 +23,16 @@ export function formatGitHub(results, options = {}) {
     for (const issue of res.issues) {
       const command = issue.severity === 'error' ? 'error' : 'warning';
       const file = res.targetPath;
-      const line = issue.line || 1;
+      const location = issue.line && !['files', 'gitStaleness'].includes(issue.check) ? `,line=${issue.line}` : '';
       const title = `i18n-sync drift [${issue.check}]`;
       const message = escapeGitHubData(issue.message);
 
-      lines.push(`::${command} file=${file},line=${line},title=${title}::${message}`);
+      lines.push(`::${command} file=${file}${location},title=${title}::${message}`);
     }
+  }
+
+  for (const plan of options.plannedChanges || []) {
+    lines.push(`Would update ${plan.codeBlocks} code block(s) in ${plan.targetPath}`);
   }
 
   // Also append text summary

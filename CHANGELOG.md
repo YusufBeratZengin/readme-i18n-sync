@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Package files whitelist, public provenance metadata, and prepublish checks.
+- Configurable staleness grace period and `--staleness-grace` duration flag.
+- `--warn-only`, safe code-fix previews with `--dry-run`, and explicit `--force`.
+- Runtime configuration validation using the published schema.
+- Temporary git repository tests, CLI exit tables, location tests, and documentation output checks.
+- Tag-triggered OIDC release workflow, issue forms, PR template, Contributor Covenant 2.1, Dependabot, and runnable multilingual examples with Actions integration.
+
+### Changed
+- English and Turkish READMEs now share sections, badges, real output, limitations, and exit-code documentation.
+- CI covers Node 20, 22, and 24 on Linux and Windows and checks package contents.
+- Language pairing accepts regional and script variants while excluding draft and backup suffixes.
+
+### Fixed
+- Files last changed in the same commit never trigger git staleness.
+- File-level diagnostics omit line numbers; missing links, images, and versions identify source lines.
+- Unknown flags and invalid configuration exit 2 with a single error line.
+- Code fixes refuse uncommitted targets, surface write errors, and preserve target line endings.
+- Explicit targets outside the working directory use their own directory for git safety checks.
+
 ## [0.1.0] - 2026-10-22
 
 ### Added

@@ -1,4 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { assertTargetClean } from './git.js';
 import { parseMarkdown } from './parser.js';
 
 /**
@@ -71,7 +73,8 @@ export function fixCodeBlocks(sourceMarkdown, targetMarkdown) {
     targetLines.splice(rep.startLineIndex, deleteCount, rep.replacementText);
   }
 
-  const newContent = targetLines.join('\n');
+  const eol = targetMarkdown.includes('\r\n') ? '\r\n' : '\n';
+  const newContent = targetLines.join('\n').replace(/\r?\n/g, eol);
   return {
     fixed: true,
     fixedCount: replacements.length,
@@ -83,9 +86,10 @@ export function fixCodeBlocks(sourceMarkdown, targetMarkdown) {
  * Fix code blocks in a target file directly on disk.
  * @param {string} sourcePath
  * @param {string} targetPath
- * @returns {Promise<{ fixed: boolean, fixedCount: number, error?: string }>}
+ * @param {{dryRun?: boolean, force?: boolean}} [options]
+ * @returns {Promise<{ fixed: boolean, fixedCount: number, plannedCount?: number, error?: string }>}
  */
-export async function fixCodeBlocksInFile(sourcePath, targetPath) {
+export async function fixCodeBlocksInFile(sourcePath, targetPath, options = {}) {
   try {
     const [sourceContent, targetContent] = await Promise.all([
       readFile(sourcePath, 'utf8'),
@@ -93,13 +97,15 @@ export async function fixCodeBlocksInFile(sourcePath, targetPath) {
     ]);
 
     const result = fixCodeBlocks(sourceContent, targetContent);
-    if (result.fixed) {
+    if (result.fixed && !options.dryRun) {
+      if (!options.force) await assertTargetClean(resolve(targetPath), dirname(resolve(targetPath)));
       await writeFile(targetPath, result.newContent, 'utf8');
     }
 
     return {
-      fixed: result.fixed,
-      fixedCount: result.fixedCount
+      fixed: result.fixed && !options.dryRun,
+      fixedCount: options.dryRun ? 0 : result.fixedCount,
+      plannedCount: result.fixedCount
     };
   } catch (err) {
     return {

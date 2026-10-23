@@ -13,6 +13,7 @@ Clone the repository and install dev dependencies if needed (the project itself 
 ```bash
 git clone https://github.com/YusufBeratZengin/readme-i18n-sync.git
 cd readme-i18n-sync
+npm ci
 ```
 
 ## Running Tests
@@ -23,7 +24,7 @@ Run the built-in test runner:
 npm test
 ```
 
-Run syntax checks:
+Run lint checks:
 
 ```bash
 npm run lint
@@ -43,3 +44,27 @@ npm run lint
 - Preserve zero runtime dependency footprint in `src/`.
 - Do not introduce emojis or marketing fluff into documentation.
 - Maintain consistent 2-space indentation.
+
+## Releasing
+
+Releases are maintained by the package owner. This repository uses a single
+tag-triggered workflow, `.github/workflows/release.yml`; there is no second
+publishing workflow to accidentally publish the same tag twice.
+
+1. Review the Unreleased changelog and update both README files.
+2. Run `npm run lint`, `npm test`, and `npm pack --dry-run`. Check the payload.
+3. Choose a SemVer version and update `package.json` and `package-lock.json`.
+   Update `VERSION` in `src/cli.js` and the JSON formatter version as well.
+4. Move the changelog changes into a dated release section. The maintainer commits
+   with `chore(release): vX.Y.Z`, creates tag `vX.Y.Z`, and pushes the reviewed tag.
+5. The workflow verifies the tag equals the package version, runs the checks,
+   and publishes with provenance and public access.
+
+Before the first release, configure npm trusted publishing for owner
+`YusufBeratZengin`, repository `readme-i18n-sync`, workflow `release.yml`, and
+environment `npm`. Allow direct publishing with `npm publish`. Configure the
+GitHub `npm` environment as needed. See the
+[npm trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
+The workflow uses Node 24 and requires npm 11.5.1 or later for OIDC.
+No registry token belongs in this repository. If trusted publishing cannot be
+configured, stop the release and resolve it with the maintainer.

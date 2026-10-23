@@ -1,0 +1,17 @@
+name: Documentation sync
+on:
+  pull_request:
+    paths: ['README*.md', 'docs/**', '.i18n-sync.json']
+permissions:
+  contents: read
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npx --yes readme-i18n-sync@0.1.0 check --format github --staleness-grace 10m
