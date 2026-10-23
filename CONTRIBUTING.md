@@ -24,10 +24,27 @@ Run the built-in test runner:
 npm test
 ```
 
+Every test run prints Node's built-in coverage report. On Node 22.8+, run the
+same 85% source line coverage gate used by CI:
+
+```bash
+npm test -- --test-coverage-include=src/** --test-coverage-lines=85
+```
+
+There is no separate typecheck command in this JavaScript project.
+
 Run lint checks:
 
 ```bash
 npm run lint
+```
+
+After changing the CLI or demo fixture, update the text transcripts in both
+READMEs and regenerate the terminal image:
+
+```bash
+npm run demo
+npm run demo:check
 ```
 
 ## Pull Request Process

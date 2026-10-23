@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatText, formatJson, formatGitHub } from '../src/formatters/index.js';
+import { formatOutput, formatText, formatJson, formatGitHub } from '../src/formatters/index.js';
 
 describe('Formatters', () => {
   const mockResults = [
@@ -80,3 +80,23 @@ for (const check of ['gitStaleness', 'files']) {
     assert.equal(results[0].issues[0].line, 1, 'formatting does not mutate results');
   });
 }
+
+test('dry-run plans and file errors survive every output format without losing escaping', () => {
+  const results = [{ sourcePath: 'README.md', targetPath: 'README.tr.md', language: 'tr', synced: false,
+    issues: [{ check: 'files', severity: 'error', message: 'Missing 100%\r\nsource' }],
+    summary: { total: 1, warnings: 0, errors: 1 } }];
+  const options = { plannedChanges: [{ targetPath: 'README.tr.md', codeBlocks: 2 }] };
+  const json = JSON.parse(formatOutput('json', results, options));
+  assert.deepEqual(json.plannedChanges, options.plannedChanges);
+  assert.equal(json.summary.errors, 1);
+  assert.equal(json.summary.fixedCodeBlocks, 0);
+  assert.equal(json.summary.allSynced, false);
+  const github = formatOutput('github', results, options);
+  assert.match(github, /::error file=README.tr.md,title=i18n-sync drift \[files\]::Missing 100%25%0D%0Asource/);
+  assert.match(github, /Would update 2 code block\(s\) in README.tr.md/);
+  const text = formatOutput('text', results, options);
+  assert.match(text, /Would update 2 code block\(s\) in README.tr.md/);
+  assert.match(text, /Issues: 0 warnings, 1 errors/);
+  assert.doesNotMatch(text, /Fixed code blocks:/);
+  assert.equal(formatOutput('unknown', results, options), text, 'unknown API formats retain the text fallback');
+});

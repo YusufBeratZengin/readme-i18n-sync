@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1063" height="536" viewBox="0 0 1063 536" role="img" aria-labelledby="title description">
+  <title id="title">readme-i18n-sync terminal demo</title>
+  <desc id="description">Real CLI output: Spanish has nine structural warnings; Turkish is synced. Exit code 1 is expected for this fixture.</desc>
+  <rect x="1" y="1" width="1061" height="534" rx="16" fill="#0f172a" stroke="#334155"/>
+  <path d="M17 1H1046Q1062 1 1062 17V52H1V17Q1 1 17 1Z" fill="#1e293b"/>
+  <circle cx="28" cy="26" r="6" fill="#f87171"/>
+  <circle cx="50" cy="26" r="6" fill="#fbbf24"/>
+  <circle cx="72" cy="26" r="6" fill="#4ade80"/>
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="14" xml:space="preserve">
+    <text x="100" y="31" fill="#94a3b8">readme-i18n-sync · intentional drift · exit 1</text>
+    <text x="28" y="90" fill="#93c5fd">$ cd test/fixtures/basic</text>
+    <text x="28" y="114" fill="#93c5fd">$ node ../../../bin/i18n-sync.js check</text>
+    <text x="28" y="138" fill="#e2e8f0"></text>
+    <text x="28" y="162" fill="#fcd34d">[DRIFT] README.es.md (source: README.md, lang: es)</text>
+    <text x="28" y="186" fill="#fcd34d">  - line 20: [headings] Heading #4 level mismatch: source has H3 (&quot;Configuration&quot;), target has H2 (&quot;Configuración&quot;)</text>
+    <text x="28" y="210" fill="#fcd34d">  - line 7: [codeBlocks] Code block #1 content differs from source</text>
+    <text x="28" y="234" fill="#fcd34d">  - line 15: [codeBlocks] Code block #2 content differs from source</text>
+    <text x="28" y="258" fill="#fcd34d">  - [links] Missing link target in translation: &quot;https://example.com/project&quot; (source line 30)</text>
+    <text x="28" y="282" fill="#fcd34d">  - [images] Missing image source in translation: &quot;https://example.com/logo.png&quot; (source line 30)</text>
+    <text x="28" y="306" fill="#fcd34d">  - line 22: [tables] Table #1 column count mismatch: source has 3 columns, target has 2</text>
+    <text x="28" y="330" fill="#fcd34d">  - line 26: [admonitions] Admonition #1 type mismatch: source has [!NOTE], target has [!WARNING]</text>
+    <text x="28" y="354" fill="#fcd34d">  - [versions] Version mismatch: source version &quot;0.1.0&quot; not found in translation (source line 30)</text>
+    <text x="28" y="378" fill="#fcd34d">  - line 29: [versions] Outdated or extra version: translation mentions version &quot;0.0.9&quot;, not found in source</text>
+    <text x="28" y="402" fill="#86efac">[OK] README.tr.md (source: README.md, lang: tr)</text>
+    <text x="28" y="426" fill="#e2e8f0"></text>
+    <text x="28" y="450" fill="#e2e8f0">Summary:</text>
+    <text x="28" y="474" fill="#e2e8f0">  Pairs checked: 2 (1 synced, 1 with drift)</text>
+    <text x="28" y="498" fill="#e2e8f0">  Issues: 9 warnings, 0 errors</text>
+  </g>
+</svg>

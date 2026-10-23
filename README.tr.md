@@ -5,10 +5,16 @@
 
 Kaynak Markdown belgesi ile çevirileri arasındaki yapı farklarını bulur.
 Ek çalışma zamanı bağımlılığı yoktur. Belge yapısını ve git geçmişini yerel olarak inceler.
-Kurulum: `npm install -g readme-i18n-sync` (Node.js 20+).
-Çalıştırma: `i18n-sync check`.
+
+## Neden readme-i18n-sync?
+
+- Çevrilmiş metinleri karşılaştırmadan eksik bölümleri, güncelliğini yitirmiş kod örneklerini ve değişen bağlantıları yakalar.
+- Markdown belgelerini ve git geçmişini yerel olarak inceler; ek çalışma zamanı bağımlılığı, hesap veya ağ bağlantısı gerektirmez.
+- Metin, JSON ve GitHub Actions bildirimleriyle sorunları gösterir; kod bloklarındaki düzeltmeleri uygulamadan önce önizlemenizi sağlar.
 
 ## Örnek çıktı
+
+![İspanyolca test belgesinde dokuz uyarı, Türkçe çeviride ise uyum gösteren terminal çıktısı](docs/demo.svg)
 
 Bu çıktı, `test/fixtures/basic/` içinde `node ../../../bin/i18n-sync.js check` çalıştırılarak alındı (çıkış kodu 1). İspanyolca test belgesinde bilerek bırakılmış farklar var. Türkçe belge kaynakla uyumlu. Çıktının her çalıştırmada aynı olması için bu örnekte git kontrolü kapalı.
 
@@ -32,9 +38,19 @@ Summary:
 ~~~
 <!-- /basic-output -->
 
-## Kurulum
+Görseli `npm run demo` ile yeniden üretebilirsiniz. CI, `npm run demo:check` ile görselin güncel olduğunu doğrular. Yukarıdaki metin çıktısı da aynı CLI çıktısıyla karşılaştırılır.
 
-Yukarıdaki kurulum komutunu kullanabilirsiniz. Repoyu indirdiyseniz `node bin/i18n-sync.js check` ile doğrudan çalıştırabilirsiniz. Derleme gerekmez.
+## Hızlı başlangıç
+
+Node.js 20+ ve git gereklidir. Repoyla gelen örneği doğrudan çalıştırabilirsiniz; kurulum veya derleme gerekmez:
+
+~~~bash
+git clone https://github.com/YusufBeratZengin/readme-i18n-sync.git
+cd readme-i18n-sync
+node bin/i18n-sync.js check --source examples/README.md --target examples/README.tr.md --no-git
+~~~
+
+Beklenen sonuç: `[OK]`, uyumlu bir belge çifti, sıfır sorun ve çıkış kodu 0. npm üzerinden kurmak için `npm install -g readme-i18n-sync` komutunu kullanın; ardından aşağıdaki komutları belgelerinizin bulunduğu dizinde çalıştırın. Repoyla gelen örnek, paket npm'de yayımlanmadan önce de çalışır.
 
 ## Kullanım
 
@@ -108,13 +124,23 @@ Git kontrolü, her dosyanın son commit kimliğini ve zamanını karşılaştır
 
 Yerel içeriği kontrol dışında bırakmak için öğenin önüne `<!-- i18n-sync-ignore -->` koyun. Bir bölümü atlamak için `<!-- i18n-sync-ignore-start -->` ve `<!-- i18n-sync-ignore-end -->` kullanın.
 
-## Neleri kontrol etmez?
+## Sık sorulan sorular ve sınırlar
+
+### Metni çevirir veya çevirinin kalitesini değerlendirir mi?
+
+Hayır. Bakımcının incelemesi için yapısal farkları gösterir. Şunları kontrol etmez:
 
 - Metnin anlatımını, dil bilgisini veya okunabilirliğini.
 - Çevirinin doğruluğunu ya da anlamın değişip değişmediğini.
 - Çevirmenin değiştirdiği bağlantı çapalarının çalışıp çalışmadığını. Bağlantı adresleri yazıldığı gibi karşılaştırılır. Yerelleştirilmiş çapalar için yok sayma işareti gerekebilir.
 
-Kontroller ağ bağlantısı olmadan, yerel olarak çalışır. JSON çıktısı, farklı kod bloklarından içerik taşıyabilir. Paylaşmadan önce gözden geçirin.
+### API anahtarı veya ağ bağlantısı gerekir mi?
+
+Hayır. Kontroller ağ bağlantısı olmadan, yerel olarak çalışır. JSON çıktısı, farklı kod bloklarından içerik taşıyabilir. Paylaşmadan önce gözden geçirin.
+
+### Bilerek bırakılan farklara izin verebilir miyim?
+
+Evet. Yerelleştirilmiş bölümler için yukarıdaki yok sayma işaretlerini kullanabilir, `.i18n-sync.json` içinde belirli kontrolleri kapatabilir veya CI'ın farklar yüzünden başarısız olmaması için `--warn-only` seçebilirsiniz. Kod düzeltmeleri yalnızca mevcut eşleşen blokları kopyalar; metni çevirmez veya eksik bölüm oluşturmaz.
 
 ## Çıkış kodları
 
@@ -131,10 +157,11 @@ Repo dizininde:
 ~~~bash
 npm run lint
 npm test
+npm run demo:check
 npm pack --dry-run
 ~~~
 
-Testler Node'un kendi test aracını, yerel örnekleri ve geçici git repolarını kullanır. Git gereklidir. Testler ağa bağlanmaz. CI; Linux ve Windows üzerinde Node 20, 22 ve 24 ile çalışır.
+Testler Node'un kapsam raporlamasını destekleyen kendi test aracını, yerel örnekleri ve geçici git repolarını kullanır. Git gereklidir. Testler ağa bağlanmaz. CI; Linux ve Windows üzerinde Node 20, 22 ve 24 ile çalışır. Node 22+ görevlerinde kaynak kodun satır kapsamının en az %85 olması gerekir. Aynı kapsam kontrolünü yerelde Node 22.8+ ile çalıştırmak için `npm test -- --test-coverage-include=src/** --test-coverage-lines=85` kullanın. Bu JavaScript projesinde ayrı bir tür kontrolü (typecheck) komutu yoktur.
 
 ## Katkıda bulunma
 

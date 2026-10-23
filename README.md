@@ -5,10 +5,16 @@ English | [Türkçe](README.tr.md)
 
 Detect structural drift between source Markdown and its translations.
 Runs locally with zero runtime dependencies; compares structure and git history.
-Install: `npm install -g readme-i18n-sync` (Node.js 20+).
-Run: `i18n-sync check`.
+
+## Why readme-i18n-sync?
+
+- Catch missing sections, outdated code examples, and changed links without comparing translated prose.
+- Check Markdown and git history locally with zero runtime dependencies, accounts, or network calls.
+- Bring actionable text, JSON, and GitHub Actions diagnostics into the same workflow, with safe code block fix previews.
 
 ## Demo
+
+![Terminal output showing nine warnings in the Spanish fixture and a synced Turkish translation](docs/demo.svg)
 
 Real output from `node ../../../bin/i18n-sync.js check` inside `test/fixtures/basic/` (exit 1). Spanish has intentional drift; Turkish is synced. Git staleness is disabled in this fixture for repeatable output.
 
@@ -32,9 +38,19 @@ Summary:
 ~~~
 <!-- /basic-output -->
 
-## Install
+Regenerate the image with `npm run demo`; CI verifies it with `npm run demo:check`. The text transcript above is checked against the same CLI output.
 
-Use the install command above, or run a checkout directly with `node bin/i18n-sync.js check`. No build step is needed.
+## Quick start
+
+Requires Node.js 20+ and git. Run the bundled example straight from a checkout; no install or build step is needed:
+
+~~~bash
+git clone https://github.com/YusufBeratZengin/readme-i18n-sync.git
+cd readme-i18n-sync
+node bin/i18n-sync.js check --source examples/README.md --target examples/README.tr.md --no-git
+~~~
+
+Expected: `[OK]`, one synced pair, zero issues, exit 0. For an npm installation, use `npm install -g readme-i18n-sync`, then run the commands below from the directory containing your documentation. The checkout example also works before npm publication.
 
 ## Usage
 
@@ -108,13 +124,23 @@ Git checks compare each file's last commit hash and committer timestamp. The sam
 
 Use `<!-- i18n-sync-ignore -->` before a localized element, or wrap a region with `<!-- i18n-sync-ignore-start -->` and `<!-- i18n-sync-ignore-end -->`.
 
-## What it does not check
+## FAQ and limitations
+
+### Does it translate or judge prose?
+
+No. It flags structural differences for a maintainer to review. It does not check:
 
 - Prose quality, grammar, or readability.
 - Translation correctness or whether meaning has changed.
 - Whether anchors renamed by translators resolve correctly. Link destinations are compared as written; localized anchors may need ignore markers.
 
-Checks run locally without network access. JSON may contain document excerpts from differing code blocks; review it before sharing.
+### Does it need an API key or network access?
+
+No. Checks run locally without network access. JSON may contain document excerpts from differing code blocks; review it before sharing.
+
+### Can I allow intentional differences?
+
+Yes. Use the ignore markers described above for localized sections, disable individual checks in `.i18n-sync.json`, or choose `--warn-only` to report drift without failing CI. Code fixes only copy existing paired blocks; they do not translate prose or create missing sections.
 
 ## Exit codes
 
@@ -131,10 +157,11 @@ From a checkout:
 ~~~bash
 npm run lint
 npm test
+npm run demo:check
 npm pack --dry-run
 ~~~
 
-Tests use Node's built-in runner, local fixtures, and temporary git repositories. They require git and make no network requests. CI checks Node 20, 22, and 24 on Linux and Windows.
+Tests use Node's built-in runner with coverage reporting, local fixtures, and temporary git repositories. They require git and make no network requests. CI checks Node 20, 22, and 24 on Linux and Windows; Node 22+ jobs require at least 85% source line coverage. To run the same coverage gate locally on Node 22.8+, use `npm test -- --test-coverage-include=src/** --test-coverage-lines=85`. This JavaScript project has no separate typecheck command.
 
 ## Contributing
 

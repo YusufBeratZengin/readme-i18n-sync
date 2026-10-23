@@ -39,7 +39,15 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Run test suite
+      - name: Run test suite with coverage (Node 20)
+        if: matrix.node-version == '20.x'
         run: npm test
+
+      - name: Require 85% source line coverage (Node 22+)
+        if: matrix.node-version != '20.x'
+        run: npm test -- --test-coverage-include=src/** --test-coverage-lines=85
+
+      - name: Verify demo matches the CLI
+        run: npm run demo:check
 
       - run: npm pack --dry-run

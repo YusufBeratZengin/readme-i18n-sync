@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Reproducible terminal SVG demo with a generator that verifies both README transcripts.
+- Built-in Node.js test coverage reporting, an 85% source line coverage gate on Node 22+ in CI, and regression tests for missing files, fix preflight, and dry-run output.
+- Weekly JavaScript CodeQL analysis and weekly GitHub Actions dependency updates.
 - Package files whitelist, public provenance metadata, and prepublish checks.
 - Configurable staleness grace period and `--staleness-grace` duration flag.
 - `--warn-only`, safe code-fix previews with `--dry-run`, and explicit `--force`.
@@ -27,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code fixes refuse uncommitted targets, surface write errors, and preserve target line endings.
 - Explicit targets outside the working directory use their own directory for git safety checks.
 
-## [0.1.0] - 2026-10-22
+## [0.1.0] - 2026-10-23
 
 ### Added
 - Markdown block parser supporting ATX and setext headings, fenced code blocks, tables, lists, links, images, admonitions, and version numbers.
