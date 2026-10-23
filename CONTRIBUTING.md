@@ -39,6 +39,9 @@ Run lint checks:
 npm run lint
 ```
 
+Lint checks the syntax of every JavaScript module in `bin/`, `src/`, `scripts/`,
+and `test/`, including nested directories. It requires no additional dependencies.
+
 After changing the CLI or demo fixture, update the text transcripts in both
 READMEs and regenerate the terminal image:
 

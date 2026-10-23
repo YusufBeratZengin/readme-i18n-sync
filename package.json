@@ -21,7 +21,7 @@
     "check": "node ./bin/i18n-sync.js check",
     "demo": "node scripts/make-demo.mjs",
     "demo:check": "node scripts/make-demo.mjs --check",
-    "lint": "node --check bin/i18n-sync.js src/*.js src/**/*.js test/*.test.js",
+    "lint": "node scripts/lint.mjs",
     "prepublishOnly": "npm run lint && npm test"
   },
   "keywords": [

@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Language pairing accepts regional and script variants while excluding draft and backup suffixes.
 
 ### Fixed
+- Lint now checks every JavaScript module, including nested formatters, tests, and maintenance scripts, instead of only the first file.
 - Files last changed in the same commit never trigger git staleness.
 - File-level diagnostics omit line numbers; missing links, images, and versions identify source lines.
 - Unknown flags and invalid configuration exit 2 with a single error line.
