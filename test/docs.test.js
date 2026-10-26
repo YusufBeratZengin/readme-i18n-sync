@@ -43,3 +43,10 @@ test('example Actions snippet matches the runnable workflow file', async () => {
     assert.equal(parseMarkdown(markdown).codeBlocks.find(b => b.lang === 'yaml').content, workflow);
   }
 });
+
+test('examples/api-check.mjs runs cleanly and reports synced status', () => {
+  const result = spawnSync(process.execPath, [resolve('examples/api-check.mjs')], { encoding: 'utf8' });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /Checked 2 pair\(s\)\. All synced: true/);
+});

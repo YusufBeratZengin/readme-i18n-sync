@@ -49,3 +49,11 @@ jobs:
           node-version: 24
       - run: npx --yes readme-i18n-sync@0.1.0 check --format github --staleness-grace 10m
 ```
+
+## Programatik API
+
+Kontrolü JavaScript API'sini kullanarak programatik olarak çalıştırın:
+
+```bash
+node api-check.mjs
+```

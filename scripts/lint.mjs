@@ -17,7 +17,7 @@ async function collectFiles(directory) {
 
 // node --check accepts one input file; extra positional arguments are not checked.
 // Enumerate files ourselves so nested modules and scripts work on every OS.
-const files = (await Promise.all(['bin', 'src', 'scripts', 'test'].map(collectFiles)))
+const files = (await Promise.all(['bin', 'src', 'scripts', 'test', 'examples'].map(collectFiles)))
   .flat().sort();
 let failed = false;
 for (const file of files) {

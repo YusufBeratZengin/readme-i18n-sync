@@ -80,7 +80,7 @@ console.log({ pairs: results.length, allSynced });
 
 ## Örnekler
 
-[Çalıştırılabilir çok dilli örnekte](examples/README.md) bir Actions workflow'u da var. Örneğin `README.md` / `README.tr.md` ve `docs/en/guide.md` / `docs/tr/guide.md` çiftleri birbiriyle uyumlu.
+[Çalıştırılabilir çok dilli örnekte](examples/README.md) bir Actions workflow'u ve programatik ESM API betiği (`examples/api-check.mjs`) de yer alır. Örneğin `README.md` / `README.tr.md` ve `docs/en/guide.md` / `docs/tr/guide.md` çiftleri birbiriyle uyumlu.
 
 ## Yapılandırma
 
@@ -165,7 +165,7 @@ Testler Node'un kapsam raporlamasını destekleyen kendi test aracını, yerel �
 
 ## Katkıda bulunma
 
-[CONTRIBUTING.md](CONTRIBUTING.md), [davranış kuralları](CODE_OF_CONDUCT.md) ve [SECURITY.md](SECURITY.md) dosyalarını okuyun. İngilizce ve Türkçe README dosyalarını birlikte güncelleyin.
+[CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), [davranış kuralları](CODE_OF_CONDUCT.md) ve [SECURITY.md](SECURITY.md) dosyalarını okuyun. İngilizce ve Türkçe README dosyalarını birlikte güncelleyin.
 
 ## Lisans
 

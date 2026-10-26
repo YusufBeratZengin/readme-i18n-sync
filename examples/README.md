@@ -49,3 +49,11 @@ jobs:
           node-version: 24
       - run: npx --yes readme-i18n-sync@0.1.0 check --format github --staleness-grace 10m
 ```
+
+## Programmatic API
+
+Run the sync check programmatically using the JavaScript API:
+
+```bash
+node api-check.mjs
+```

@@ -160,6 +160,35 @@ describe('CLI', () => {
       await rm(tempDir, { recursive: true, force: true });
     }
   });
+
+  test('returns 0 and informative output when no translation pairs exist', async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), 'cli-empty-'));
+    const previousCwd = process.cwd();
+    try {
+      process.chdir(tempDir);
+      let outText = '';
+      const codeText = await runCli(['check', '--no-git'], {
+        stdout: msg => { outText += msg; },
+        stderr: () => {}
+      });
+      assert.equal(codeText, 0);
+      assert.equal(outText, 'No translation pairs found.');
+
+      let outJson = '';
+      const codeJson = await runCli(['check', '--no-git', '--format', 'json'], {
+        stdout: msg => { outJson += msg; },
+        stderr: () => {}
+      });
+      assert.equal(codeJson, 0);
+      const parsed = JSON.parse(outJson);
+      assert.equal(parsed.summary.pairsChecked, 0);
+      assert.equal(parsed.summary.allSynced, true);
+      assert.deepEqual(parsed.pairs, []);
+    } finally {
+      process.chdir(previousCwd);
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
 });
 
 const cli = resolve('bin/i18n-sync.js');

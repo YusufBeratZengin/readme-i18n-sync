@@ -80,7 +80,7 @@ console.log({ pairs: results.length, allSynced });
 
 ## Examples
 
-See [the runnable multilingual example](examples/README.md), including an Actions workflow. Its `README.md` / `README.tr.md` and `docs/en/guide.md` / `docs/tr/guide.md` pairs are synced.
+See [the runnable multilingual example](examples/README.md), including an Actions workflow and a programmatic ESM API script (`examples/api-check.mjs`). Its `README.md` / `README.tr.md` and `docs/en/guide.md` / `docs/tr/guide.md` pairs are synced.
 
 ## Configuration
 
@@ -165,7 +165,7 @@ Tests use Node's built-in runner with coverage reporting, local fixtures, and te
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md), the [code of conduct](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md). Keep the English and Turkish READMEs in sync.
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), the [code of conduct](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md). Keep the English and Turkish READMEs in sync.
 
 ## License
 

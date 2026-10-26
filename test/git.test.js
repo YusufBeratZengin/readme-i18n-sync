@@ -31,6 +31,28 @@ describe('Git Staleness', () => {
     }
   });
 
+  test('gracefully handles untracked files inside an active git repository', async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), 'git-test-untracked-'));
+    try {
+      await execFileAsync('git', ['init'], { cwd: tempDir });
+      await execFileAsync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-m', 'init'], { cwd: tempDir });
+      await writeFile(join(tempDir, 'source.md'), '# Source\n', 'utf8');
+      await writeFile(join(tempDir, 'target.md'), '# Target\n', 'utf8');
+
+      const info = await getFileCommitInfo('source.md', tempDir);
+      assert.equal(info.available, true);
+      assert.equal(info.tracked, false);
+      assert.equal(info.timestamp, null);
+
+      const staleness = await checkStaleness('source.md', 'target.md', tempDir);
+      assert.equal(staleness.isStale, false);
+      assert.equal(staleness.skipped, true);
+      assert.match(staleness.reason, /untracked/);
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
   test('correctly identifies staleness between commits in a git repo', async () => {
     const tempDir = await mkdtemp(join(tmpdir(), 'git-test-repo-'));
     try {

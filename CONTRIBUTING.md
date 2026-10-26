@@ -65,6 +65,13 @@ npm run demo:check
 - Do not introduce emojis or marketing fluff into documentation.
 - Maintain consistent 2-space indentation.
 
+## AI and Automated Tooling Policy
+
+Contributions assisted by AI or automated tools are welcome provided that:
+- The contributor reviews, understands, and takes full responsibility for all submitted changes.
+- All code, tests, and documentation are verified locally (`npm test`, `npm run lint`, `npm run check`, `npm run demo:check`).
+- No hallucinations, unsupported APIs, unverified external dependencies, or unvetted secrets are introduced.
+
 ## Releasing
 
 Releases are maintained by the package owner. This repository uses a single

@@ -68,6 +68,14 @@ echo "hello world"
     assert.equal(doc.tables[0].rows, 2);
   });
 
+  test('parses table that extends to the very end of the file', () => {
+    const md = '| A | B |\n| - | - |\n| 1 | 2 |';
+    const doc = parseMarkdown(md);
+    assert.equal(doc.tables.length, 1);
+    assert.equal(doc.tables[0].columns, 2);
+    assert.equal(doc.tables[0].rows, 1);
+  });
+
   test('parses lists and preserves items', () => {
     const md = `
 - Item 1

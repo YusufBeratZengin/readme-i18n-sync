@@ -53,6 +53,38 @@ describe('Pairer', () => {
     const esPair = pairs.find(p => p.language === 'es');
     assert.equal(esPair, undefined);
   });
+
+  test('discovers 1-to-1 explicit patterns and source patterns containing :lang', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'pairer-explicit-'));
+    try {
+      await writeFile(join(dir, 'doc.md'), '# Doc');
+      await writeFile(join(dir, 'doc-tr.md'), '# Belge');
+      await mkdir(join(dir, 'docs', 'en'), { recursive: true });
+      await mkdir(join(dir, 'docs', 'tr'), { recursive: true });
+      await writeFile(join(dir, 'docs', 'en', 'api.md'), '# API');
+      await writeFile(join(dir, 'docs', 'tr', 'api.md'), '# API TR');
+
+      const pairs = await discoverPairs(dir, {
+        patterns: [
+          { source: 'doc.md', target: 'doc-tr.md', language: 'tr' },
+          { source: 'docs/:lang/api.md', target: 'docs/:lang/api.md' }
+        ]
+      });
+
+      assert.equal(pairs.length, 2);
+      const direct = pairs.find(p => p.targetPath === 'doc-tr.md');
+      assert.ok(direct);
+      assert.equal(direct.sourcePath, 'doc.md');
+      assert.equal(direct.language, 'tr');
+
+      const langPattern = pairs.find(p => p.targetPath === 'docs/tr/api.md');
+      assert.ok(langPattern);
+      assert.equal(langPattern.sourcePath, 'docs/en/api.md');
+      assert.equal(langPattern.language, 'tr');
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
 });
 
 for (const lang of ['zh-CN', 'pt_BR', 'zh-Hans']) {

@@ -215,6 +215,43 @@ npm install pkg@1.0.0
     assert.equal(res.synced, true);
     assert.equal(res.issues.length, 0);
   });
+
+  test('detects heading count mismatch when target has fewer or extra headings', () => {
+    const source = `# Title\n## S1\n## S2\n`;
+    const targetFewer = `# Title\n## S1\n`;
+    const resFewer = compareDocuments(parseMarkdown(source), parseMarkdown(targetFewer));
+    assert.equal(resFewer.synced, false);
+    assert.ok(resFewer.issues.some(i => i.check === 'headings' && i.message.includes('Heading count mismatch')));
+    assert.ok(resFewer.issues.some(i => i.check === 'headings' && i.message.includes('Missing heading from source')));
+
+    const targetExtra = `# Title\n## S1\n## S2\n## S3\n`;
+    const resExtra = compareDocuments(parseMarkdown(source), parseMarkdown(targetExtra));
+    assert.equal(resExtra.synced, false);
+    assert.ok(resExtra.issues.some(i => i.check === 'headings' && i.message.includes('Heading count mismatch')));
+    assert.ok(resExtra.issues.some(i => i.check === 'headings' && i.message.includes('Extra heading in target')));
+  });
+
+  test('detects code block count and language mismatch', () => {
+    const source = "```js\nconst a = 1;\n```\n```bash\nnpm test\n```\n";
+    const targetFewer = "```js\nconst a = 1;\n```\n";
+    const resCount = compareDocuments(parseMarkdown(source), parseMarkdown(targetFewer));
+    assert.equal(resCount.synced, false);
+    assert.ok(resCount.issues.some(i => i.check === 'codeBlocks' && i.message.includes('Code block count mismatch')));
+
+    const targetLang = "```js\nconst a = 1;\n```\n```sh\nnpm test\n```\n";
+    const resLang = compareDocuments(parseMarkdown(source), parseMarkdown(targetLang));
+    assert.equal(resLang.synced, false);
+    assert.ok(resLang.issues.some(i => i.check === 'codeBlocks' && i.message.includes('language mismatch')));
+  });
+
+  test('detects table and admonition count mismatches', () => {
+    const source = "| A |\n| - |\n| 1 |\n\n| B |\n| - |\n| 2 |\n\n> [!NOTE]\n> N1\n\n> [!NOTE]\n> N2\n";
+    const target = "| A |\n| - |\n| 1 |\n\n> [!NOTE]\n> N1\n";
+    const res = compareDocuments(parseMarkdown(source), parseMarkdown(target));
+    assert.equal(res.synced, false);
+    assert.ok(res.issues.some(i => i.check === 'tables' && i.message.includes('Table count mismatch')));
+    assert.ok(res.issues.some(i => i.check === 'admonitions' && i.message.includes('Admonition count mismatch')));
+  });
 });
 
 test('missing elements identify the source location; existing target elements keep target lines', async () => {

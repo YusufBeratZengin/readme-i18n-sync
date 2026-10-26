@@ -1,0 +1,27 @@
+name: Documentation
+description: Propose improvements or report issues in documentation and examples
+title: "docs: "
+labels: [documentation]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for helping keep the documentation and examples clear and accurate.
+  - type: textarea
+    id: area
+    attributes:
+      label: Documentation area
+      description: Which file or section needs improvement (e.g., README.md, README.tr.md, examples, CLI help)?
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Description of the issue or proposed change
+      description: Explain what is missing, outdated, or unclear.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested revision or addition
+      description: If you have draft text or code snippets, provide them here.

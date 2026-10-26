@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Programmatic ESM API example script (`examples/api-check.mjs`) and runnable example verification test.
+- GitHub issue form template for documentation and example improvements (`.github/ISSUE_TEMPLATE/documentation.yml`).
+- AI and automated tooling contribution policy in `CONTRIBUTING.md`.
+- Comprehensive test coverage for utils (`globToRegex`, `matchGlob`, `walkDirectory`), table parsing edge cases, 1-to-1 pair patterns, fixer empty cases, CLI empty-result formatting, and untracked git repository files.
 - Reproducible terminal SVG demo with a generator that verifies both README transcripts.
 - Built-in Node.js test coverage reporting, an 85% source line coverage gate on Node 22+ in CI, and regression tests for missing files, fix preflight, and dry-run output.
 - Weekly JavaScript CodeQL analysis and weekly GitHub Actions dependency updates.
@@ -19,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tag-triggered OIDC release workflow, issue forms, PR template, Contributor Covenant 2.1, Dependabot, and runnable multilingual examples with Actions integration.
 
 ### Changed
-- English and Turkish READMEs now share sections, badges, real output, limitations, and exit-code documentation.
+- English and Turkish READMEs now share sections, badges, real output, limitations, and exit-code documentation, with cross-references to `CHANGELOG.md`.
+- Lint script now checks all JavaScript modules across `bin/`, `src/`, `scripts/`, `test/`, and `examples/`.
 - CI covers Node 20, 22, and 24 on Linux and Windows and checks package contents.
 - Language pairing accepts regional and script variants while excluding draft and backup suffixes.
 

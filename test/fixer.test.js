@@ -66,6 +66,19 @@ client.connect();
     assert.equal(result.fixedCount, 0);
   });
 
+  test('returns fixed=false when source or target has no code blocks', () => {
+    assert.deepEqual(fixCodeBlocks('# No code', '```js\ncode();\n```'), {
+      fixed: false,
+      fixedCount: 0,
+      newContent: '```js\ncode();\n```'
+    });
+    assert.deepEqual(fixCodeBlocks('```js\ncode();\n```', '# No code'), {
+      fixed: false,
+      fixedCount: 0,
+      newContent: '# No code'
+    });
+  });
+
   test('fixCodeBlocksInFile modifies target file on disk', async () => {
     const tempDir = await mkdtemp(join(tmpdir(), 'i18n-fix-test-'));
     const sourceFile = join(tempDir, 'source.md');
